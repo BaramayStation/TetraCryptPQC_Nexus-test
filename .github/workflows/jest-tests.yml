@@ -1,0 +1,37 @@
+name: Military-Grade Jest Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 21]
+    container:
+      image: node:${{ matrix.node-version }}-alpine
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Podman with security hardening
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y podman podman-secure
+        sudo systemctl enable --now podman.socket
+        
+    - name: Build container with security scanning
+      run: podman build --security-opt=no-new-privileges -t jest-container .
+      
+    - name: Run primary tests
+      run: podman run --rm -v "$(pwd):/app" jest-container
+      
+    - name: Run fallback tests
+      if: failure()
+      run: podman run --rm -v "$(pwd):/app" jest-container npm run test:fallback
+      
+    - name: Security audit
+      run: npm audit --production
+      
+    - name: Dependency check
+      run: npx npm-check-updates --dep prod,dev --upgrade
