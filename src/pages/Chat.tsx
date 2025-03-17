@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from "@/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import { getContacts, saveContact, getUserProfile } from "@/lib/storage";
 import { Contact } from "@/lib/storage-types";
 import { useToast } from "@/components/ui/use-toast";
 
+// Main Chat Component
 const Chat: React.FC = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,11 +20,11 @@ const Chat: React.FC = () => {
   const [showAddContact, setShowAddContact] = useState(false);
   const [newContactName, setNewContactName] = useState('');
 
-  // Load contacts
+  // Load contacts when component mounts
   useEffect(() => {
-    const loadedContacts = getContacts();
-    if (loadedContacts.length === 0) {
-      // Add demo contacts if none exist
+    let loadedContacts = getContacts();
+
+    if (!loadedContacts || loadedContacts.length === 0) {
       const demoContacts: Contact[] = [
         {
           id: "contact1",
@@ -51,10 +51,10 @@ const Chat: React.FC = () => {
       ];
       
       demoContacts.forEach(contact => saveContact(contact));
-      setContacts(demoContacts);
-    } else {
-      setContacts(loadedContacts);
+      loadedContacts = demoContacts;
     }
+    
+    setContacts(loadedContacts);
   }, []);
 
   // Filter contacts based on search query
@@ -63,7 +63,7 @@ const Chat: React.FC = () => {
   );
 
   // Handle adding a new contact
-  const handleAddContact = () => {
+  const handleAddContact = useCallback(() => {
     if (!newContactName.trim()) {
       toast({
         title: "Invalid Contact",
@@ -73,10 +73,8 @@ const Chat: React.FC = () => {
       return;
     }
     
-    // Generate a unique ID
     const contactId = crypto.randomUUID();
     
-    // Create new contact object
     const newContact: Contact = {
       id: contactId,
       displayName: newContactName,
@@ -87,14 +85,10 @@ const Chat: React.FC = () => {
       status: "offline"
     };
     
-    // Save the new contact
     saveContact(newContact);
-    
-    // Update local state
     setContacts(prevContacts => [...prevContacts, newContact]);
     setSelectedContact(newContact);
     
-    // Reset form
     setNewContactName('');
     setShowAddContact(false);
     
@@ -102,7 +96,7 @@ const Chat: React.FC = () => {
       title: "Contact Added",
       description: `${newContactName} has been added to your contacts.`,
     });
-  };
+  }, [newContactName, toast]);
 
   return (
     <MainLayout>
@@ -169,26 +163,7 @@ const Chat: React.FC = () => {
                           <AvatarFallback>{contact.name[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-medium truncate">{contact.name}</h3>
-                            {contact.lastMessageTime && (
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(contact.lastMessageTime).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className={`w-2 h-2 rounded-full ${
-                              contact.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                            }`}></span>
-                            <span className="text-xs text-muted-foreground capitalize">{contact.status}</span>
-                          </div>
-                          {contact.lastMessage && (
-                            <p className="text-sm truncate text-muted-foreground mt-1">{contact.lastMessage}</p>
-                          )}
+                          <h3 className="font-medium truncate">{contact.name}</h3>
                         </div>
                       </div>
                     </div>
@@ -198,27 +173,8 @@ const Chat: React.FC = () => {
                 <div className="flex flex-col items-center justify-center h-full p-4">
                   <Users className="h-8 w-8 text-muted-foreground mb-2" />
                   <h3 className="font-medium">No contacts found</h3>
-                  <p className="text-sm text-muted-foreground text-center">
-                    {searchQuery ? "Try a different search term" : "Add contacts to start messaging"}
-                  </p>
                 </div>
               )}
-            </div>
-            
-            <div className="p-3 border-t">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>ME</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">
-                    {getUserProfile()?.displayName || "You"}
-                  </span>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  PQC Secured
-                </Badge>
-              </div>
             </div>
           </div>
           
@@ -232,10 +188,6 @@ const Chat: React.FC = () => {
               <div className="flex flex-col items-center justify-center h-full p-6">
                 <Shield className="h-16 w-16 text-muted-foreground mb-4" />
                 <h2 className="text-xl font-medium mb-2">Select a contact to start messaging</h2>
-                <p className="text-muted-foreground text-center max-w-md">
-                  All messages are encrypted with post-quantum cryptography,
-                  ensuring they remain secure even against quantum computer attacks.
-                </p>
               </div>
             )}
           </div>
