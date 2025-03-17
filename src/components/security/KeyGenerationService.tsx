@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import {
 } from "@/lib/pqcrypto";
 import { PQCKey } from '@/lib/crypto';
 import { toast } from "@/components/ui/use-toast";
-import { Shield, Key } from "lucide-react";
+import { Shield, Key, Loader } from "lucide-react";
 
 // KeyGenerationService Component
 const KeyGenerationService: React.FC = () => {
@@ -22,6 +21,8 @@ const KeyGenerationService: React.FC = () => {
 
   const handleGenerateKeys = async () => {
     setIsGenerating(true);
+    setGeneratedKeys(null);
+
     try {
       let keyPair: PQCKey;
       
@@ -45,14 +46,14 @@ const KeyGenerationService: React.FC = () => {
       setGeneratedKeys(keyPair);
       
       toast({
-        title: "Keys Generated Successfully",
+        title: "✅ Keys Generated Successfully",
         description: `Generated ${keyPair.algorithm} key pair with ${keyPair.strength} security level.`,
       });
     } catch (error) {
-      console.error("Error generating keys:", error);
+      console.error("❌ Error generating keys:", error);
       toast({
         title: "Key Generation Failed",
-        description: "There was an error generating your keys. Please try again.",
+        description: "An error occurred while generating keys. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -88,11 +89,17 @@ const KeyGenerationService: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="falcon" id="falcon" />
-              <Label htmlFor="falcon">Falcon (Alternate)</Label>
+              <Label htmlFor="falcon" className="flex items-center gap-2">
+                <span className="font-medium">Falcon-1024</span>
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">FIPS 206 Alt</span>
+              </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="bike" id="bike" />
-              <Label htmlFor="bike">BIKE (Alternate)</Label>
+              <Label htmlFor="bike" className="flex items-center gap-2">
+                <span className="font-medium">BIKE</span>
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">NIST Round 4</span>
+              </Label>
             </div>
           </RadioGroup>
         </div>
@@ -103,7 +110,10 @@ const KeyGenerationService: React.FC = () => {
           className="w-full"
         >
           {isGenerating ? (
-            <>Generating Keys...</>
+            <>
+              <Loader className="animate-spin mr-2 h-4 w-4" />
+              Generating Keys...
+            </>
           ) : (
             <>
               <Key className="mr-2 h-4 w-4" />
@@ -128,15 +138,15 @@ const KeyGenerationService: React.FC = () => {
             
             <div>
               <h3 className="text-sm font-medium">Public Key (truncated)</h3>
-              <div className="p-2 bg-muted rounded-md mt-1 font-mono text-xs">
-                {generatedKeys.publicKey.substring(0, 40)}...
+              <div className="p-2 bg-muted rounded-md mt-1 font-mono text-xs break-all">
+                {generatedKeys.publicKey.substring(0, 64)}...
               </div>
             </div>
             
             <div>
               <h3 className="text-sm font-medium">Private Key (truncated)</h3>
-              <div className="p-2 bg-muted rounded-md mt-1 font-mono text-xs">
-                {generatedKeys.privateKey.substring(0, 40)}...
+              <div className="p-2 bg-muted rounded-md mt-1 font-mono text-xs break-all">
+                {generatedKeys.privateKey.substring(0, 64)}...
               </div>
             </div>
           </div>

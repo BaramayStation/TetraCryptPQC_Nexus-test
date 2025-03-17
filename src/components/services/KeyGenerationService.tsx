@@ -1,58 +1,60 @@
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { 
+import {
   generateMLKEMKeypair,
   generateSLHDSAKeypair,
   generateFalconKeypair,
-  generateBIKEKeypair 
+  generateBIKEKeypair,
 } from "@/lib/pqcrypto";
-import { PQCKey } from '@/lib/crypto';
+import { PQCKey } from "@/lib/crypto";
 import { toast } from "@/components/ui/use-toast";
 import { Shield, Key } from "lucide-react";
 
-// KeyGenerationService Component
 const KeyGenerationService: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [algorithm, setAlgorithm] = useState('ml-kem');
+  const [algorithm, setAlgorithm] = useState("ml-kem");
   const [generatedKeys, setGeneratedKeys] = useState<PQCKey | null>(null);
 
   const handleGenerateKeys = async () => {
     setIsGenerating(true);
     try {
-      let keyPair: PQCKey;
-      
+      let keyPair: PQCKey | null = null;
+
       switch (algorithm) {
-        case 'ml-kem':
+        case "ml-kem":
           keyPair = await generateMLKEMKeypair();
           break;
-        case 'slh-dsa':
+        case "slh-dsa":
           keyPair = await generateSLHDSAKeypair();
           break;
-        case 'falcon':
+        case "falcon":
           keyPair = await generateFalconKeypair();
           break;
-        case 'bike':
+        case "bike":
           keyPair = await generateBIKEKeypair();
           break;
         default:
-          throw new Error('Invalid algorithm selected');
+          throw new Error("Invalid algorithm selected");
       }
-      
+
+      if (!keyPair) {
+        throw new Error("Key generation function returned null.");
+      }
+
       setGeneratedKeys(keyPair);
-      
+
       toast({
-        title: "Keys Generated Successfully",
+        title: "✅ Keys Generated Successfully",
         description: `Generated ${keyPair.algorithm} key pair with ${keyPair.strength} security level.`,
       });
     } catch (error) {
       console.error("Error generating keys:", error);
       toast({
-        title: "Key Generation Failed",
-        description: "There was an error generating your keys. Please try again.",
+        title: "❌ Key Generation Failed",
+        description: "An error occurred while generating keys. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -71,37 +73,45 @@ const KeyGenerationService: React.FC = () => {
       <CardContent className="space-y-4">
         <div>
           <h3 className="text-sm font-medium mb-3">Select Algorithm Type</h3>
-          <RadioGroup value={algorithm} onValueChange={setAlgorithm} className="flex flex-col space-y-2">
+          <RadioGroup
+            value={algorithm}
+            onValueChange={setAlgorithm}
+            className="flex flex-col space-y-2"
+          >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="ml-kem" id="ml-kem" />
               <Label htmlFor="ml-kem" className="flex items-center gap-2">
                 <span className="font-medium">ML-KEM (Kyber)</span>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">FIPS 205</span>
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                  FIPS 205
+                </span>
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="slh-dsa" id="slh-dsa" />
               <Label htmlFor="slh-dsa" className="flex items-center gap-2">
                 <span className="font-medium">SLH-DSA (Dilithium)</span>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">FIPS 206</span>
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                  FIPS 206
+                </span>
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="falcon" id="falcon" />
-              <Label htmlFor="falcon">Falcon (Alternate)</Label>
+              <Label htmlFor="falcon" className="flex items-center gap-2">
+                <span className="font-medium">Falcon (Alternate)</span>
+              </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="bike" id="bike" />
-              <Label htmlFor="bike">BIKE (Alternate)</Label>
+              <Label htmlFor="bike" className="flex items-center gap-2">
+                <span className="font-medium">BIKE (Alternate)</span>
+              </Label>
             </div>
           </RadioGroup>
         </div>
 
-        <Button 
-          onClick={handleGenerateKeys} 
-          disabled={isGenerating} 
-          className="w-full"
-        >
+        <Button onClick={handleGenerateKeys} disabled={isGenerating} className="w-full">
           {isGenerating ? (
             <>Generating Keys...</>
           ) : (
@@ -125,14 +135,14 @@ const KeyGenerationService: React.FC = () => {
                 <span>{generatedKeys.standard}</span>
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-sm font-medium">Public Key (truncated)</h3>
               <div className="p-2 bg-muted rounded-md mt-1 font-mono text-xs">
                 {generatedKeys.publicKey.substring(0, 40)}...
               </div>
             </div>
-            
+
             <div>
               <h3 className="text-sm font-medium">Private Key (truncated)</h3>
               <div className="p-2 bg-muted rounded-md mt-1 font-mono text-xs">
