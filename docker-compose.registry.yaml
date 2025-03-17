@@ -1,0 +1,15 @@
+version: '3'
+services:
+  registry:
+    image: registry:2
+    container_name: airgap_registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/var/lib/registry
+    networks:
+      - private_network
+
+networks:
+  private_network:
+    driver: bridge

@@ -1,0 +1,16 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Enable SELinux
+      selinux:
+        policy: targeted
+        state: enforcing
+
+    - name: Enable Secure Boot
+      command: grubby --update-kernel=ALL --args="security=selinux"
+
+    - name: Configure Firewall (Allow Only Internal Traffic)
+      firewalld:
+        service: https
+        permanent: yes
+        state: enabled

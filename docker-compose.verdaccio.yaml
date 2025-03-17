@@ -1,0 +1,16 @@
+version: '3'
+services:
+  verdaccio:
+    image: verdaccio/verdaccio:latest
+    container_name: verdaccio
+    ports:
+      - "4873:4873"
+    volumes:
+      - ./storage:/verdaccio/storage
+      - ./config:/verdaccio/config
+    networks:
+      - private_network
+
+networks:
+  private_network:
+    driver: bridge

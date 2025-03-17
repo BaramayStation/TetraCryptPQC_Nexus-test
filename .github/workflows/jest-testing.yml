@@ -1,0 +1,16 @@
+name: Secure Jest Testing
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/podman/stable
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: podman run --rm tetracryptpqc npm install
+      - name: Run Jest Tests
+        run: podman run --rm tetracryptpqc npm test
