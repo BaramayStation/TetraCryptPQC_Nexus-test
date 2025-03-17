@@ -13,9 +13,13 @@ spec:
       labels:
         app: tetracryptpqc
     spec:
+      securityContext:
+        hostNetwork: false
+        hostPID: false
+        hostIPC: false
       containers:
         - name: tetracryptpqc
-          image: localhost:5000/tetracryptpqc:latest  # Uses air-gapped registry
+          image: localhost:5000/tetracryptpqc:v1.0.0  # Uses air-gapped registry
           ports:
             - containerPort: 3000
           env:
@@ -32,6 +36,9 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /etc/tetracrypt
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
           readinessProbe:
             httpGet:
               path: /health

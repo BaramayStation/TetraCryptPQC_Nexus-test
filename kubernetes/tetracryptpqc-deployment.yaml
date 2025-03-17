@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: tetracryptpqc
-          image: ghcr.io/baramaystation/tetracryptpqc:latest
+          image: ghcr.io/baramaystation/tetracryptpqc:v1.0.0
           ports:
             - containerPort: 3000
           env:
