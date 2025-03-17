@@ -1,26 +1,34 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import topLevelAwait from 'vite-plugin-top-level-await';
+import wasm from "vite-plugin-wasm"; // ✅ Ensures WASM support
+import topLevelAwait from "vite-plugin-top-level-await";
 
 export default defineConfig(({ mode }) => {
   return {
     server: {
       host: "0.0.0.0",
       port: 8080,
-      strictPort: true
+      strictPort: true,
+      https: true, // ✅ Forces TLS encryption (local dev security)
     },
-    plugins: [react(), topLevelAwait()],
+    plugins: [
+      react(),
+      wasm(), // ✅ Ensure WebAssembly works
+      topLevelAwait(), // ✅ Async WASM support
+    ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
     },
     optimizeDeps: {
+      exclude: ["@syntect/wasm"], // ✅ Prevents WASM incompatibility issues
       esbuildOptions: {
         target: "esnext",
         supported: {
-          bigint: true
+          bigint: true, // ✅ Required for PQC (Kyber, Falcon)
+          wasm: true,
         },
       },
     },
@@ -30,9 +38,18 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
       minify: "terser",
       rollupOptions: {
+        external: [
+          "starknet", // ✅ Ensures StarkNet modules work
+          "class-variance-authority",
+          "@radix-ui/react-tooltip",
+          "@radix-ui/react-popover",
+          "@helia/unixfs",
+          "vite-plugin-wasm",
+          "vite-plugin-top-level-await",
+        ],
         output: {
           manualChunks: {
-            vendor: ["react", "react-dom"],
+            vendor: ["react", "react-dom", "ethers", "starknet", "helia"],
           },
         },
       },
@@ -40,7 +57,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: "globalThis",
-      "process.env": {}
+      "process.env": {},
     },
   };
 });
