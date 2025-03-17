@@ -1,8 +1,7 @@
-
 # ✅ Netlify Build Configuration for TetraCryptPQC_Nexus
 
 [build]
-  command = "bun run build"      # Ensure Bun builds the project correctly
+  command = "NODE_OPTIONS='--max-old-space-size=4096' pnpm run build"      # Ensure Bun builds the project correctly
   publish = "dist"               # Correct publish directory for Netlify
   functions = "disabled"          # Explicitly disable Netlify Functions
   timeout = 1800                  # Increases timeout to prevent build failures on large projects
@@ -86,4 +85,3 @@
     Sec-Fetch-Mode = "navigate"
     Sec-Fetch-Site = "same-origin"
     Sec-Fetch-User = "?1"
-
