@@ -28,3 +28,10 @@ dist
 .env
 .netlify
 bun.lockb
+
+# Ignore package manager cache
+.pnpm-store/
+node_modules/
+
+# Ignore lock files (if using `pnpm`, keep `pnpm-lock.yaml`)
+package-lock.json
