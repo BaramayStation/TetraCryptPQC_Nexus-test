@@ -13,3 +13,9 @@ data:
   AIHIDS_ALERT_THRESHOLD: "5"
   TF_PRIVACY_EPSILON: "1.0"
   TF_PRIVACY_DELTA: 1e-5
+  AIRGAP_MODE: "true"
+  LOCAL_REGISTRY: "registry.local:5000"
+  NETWORK_ISOLATION: "strict"
+  YGGDRASIL_ENABLED: "true"
+  YGGDRASIL_PEERS: "tcp://peer1.local:12345,tcp://peer2.local:12345"
+  YGGDRASIL_ENCRYPTION: "aes-256-gcm"
