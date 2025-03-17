@@ -13,10 +13,6 @@ spec:
       labels:
         app: tetracryptpqc
     spec:
-      securityContext:
-        hostNetwork: false
-        hostPID: false
-        hostIPC: false
       containers:
         - name: tetracryptpqc
           image: localhost:5000/tetracryptpqc:v1.0.0  # Uses air-gapped registry

@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: tetracryptpqc
   namespace: tetracrypt
+  labels:
+    app: tetracryptpqc
 spec:
   replicas: 3
   selector:
@@ -13,31 +15,95 @@ spec:
       labels:
         app: tetracryptpqc
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+
       containers:
         - name: tetracryptpqc
-          image: ghcr.io/baramaystation/tetracryptpqc:v1.0.0
+          image: ghcr.io/baramaystation/tetracryptpqc:latest
           ports:
             - containerPort: 3000
           env:
             - name: NODE_ENV
               value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: tetracryptpqc-secrets
+                  key: database-url
+            - name: TLS_ENABLED
+              value: "true"
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+
           resources:
             requests:
+              cpu: "250m"
               memory: "512Mi"
-              cpu: "500m"
-              ephemeral-storage: "1Gi"
+              ephemeral-storage: "500Mi"
             limits:
-              memory: "1Gi"
               cpu: "1"
+              memory: "1Gi"
+              ephemeral-storage: "1Gi"
+
           readinessProbe:
             httpGet:
               path: /health
               port: 3000
-            initialDelaySeconds: 5
+              scheme: HTTPS
+            initialDelaySeconds: 3
             periodSeconds: 10
+            failureThreshold: 3
+
           livenessProbe:
             httpGet:
               path: /health
               port: 3000
-            initialDelaySeconds: 10
+              scheme: HTTPS
+            initialDelaySeconds: 5
             periodSeconds: 20
+            failureThreshold: 5
+
+          volumeMounts:
+            - name: tls-certificates
+              mountPath: "/etc/tls"
+              readOnly: true
+            - name: config-volume
+              mountPath: "/app/config"
+              readOnly: true
+
+      volumes:
+        - name: tls-certificates
+          secret:
+            secretName: tetracryptpqc-tls
+        - name: config-volume
+          configMap:
+            name: tetracryptpqc-config
+
+      nodeSelector:
+        kubernetes.io/os: linux
+
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - tetracryptpqc
+              topologyKey: "kubernetes.io/hostname"
+
+      restartPolicy: Always
