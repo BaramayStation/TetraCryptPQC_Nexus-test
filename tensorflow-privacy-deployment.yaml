@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: caldera
+  name: tensorflow-privacy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: caldera
+      app: tensorflow-privacy
   template:
     metadata:
       labels:
-        app: caldera
+        app: tensorflow-privacy
     spec:
       containers:
-      - name: caldera
-        image: caldera:latest
+      - name: tensorflow-privacy
+        image: tensorflow-privacy:latest
         ports:
-        - containerPort: 8888
+        - containerPort: 6000
         envFrom:
         - configMapRef:
             name: ai-security-config
@@ -27,11 +27,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: caldera-service
+  name: tensorflow-privacy-service
 spec:
   selector:
-    app: caldera
+    app: tensorflow-privacy
   ports:
   - protocol: TCP
-    port: 8888
-    targetPort: 8888
+    port: 6000
+    targetPort: 6000

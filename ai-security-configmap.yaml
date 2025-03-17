@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ai-security-config
+data:
+  CALDERA_API_KEY: your_caldera_api_key
+  CALDERA_ENDPOINT: http://caldera-service:8888
+  CLIP_MODEL: ViT-B/32
+  CLIP_THRESHOLD: "0.85"
+  DEEPEXPLOIT_SCAN_INTERVAL: "3600"
+  DEEPEXPLOIT_TARGET_NETWORK: 10.0.0.0/24
+  AIHIDS_LOG_PATH: /var/log/aihids
+  AIHIDS_ALERT_THRESHOLD: "5"
+  TF_PRIVACY_EPSILON: "1.0"
+  TF_PRIVACY_DELTA: 1e-5

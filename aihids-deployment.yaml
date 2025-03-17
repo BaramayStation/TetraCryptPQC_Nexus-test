@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: caldera
+  name: aihids
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: caldera
+      app: aihids
   template:
     metadata:
       labels:
-        app: caldera
+        app: aihids
     spec:
       containers:
-      - name: caldera
-        image: caldera:latest
+      - name: aihids
+        image: aihids:latest
         ports:
-        - containerPort: 8888
+        - containerPort: 9000
         envFrom:
         - configMapRef:
             name: ai-security-config
@@ -27,11 +27,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: caldera-service
+  name: aihids-service
 spec:
   selector:
-    app: caldera
+    app: aihids
   ports:
   - protocol: TCP
-    port: 8888
-    targetPort: 8888
+    port: 9000
+    targetPort: 9000

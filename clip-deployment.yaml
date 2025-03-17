@@ -17,6 +17,9 @@ spec:
         image: clip:latest
         ports:
         - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: ai-security-config
         securityContext:
           readOnlyRootFilesystem: true
           runAsNonRoot: true

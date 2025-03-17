@@ -31,3 +31,13 @@ podman info --format json | jq .host.security.rootless
 # Step 5: Test rootless mode
 echo "Testing rootless mode with a hello-world container..."
 podman run hello-world
+
+# Pull AI security tool images
+podman pull caldera:latest
+podman pull clip:latest
+podman pull deepexploit:latest
+podman pull aihids:latest
+podman pull tensorflow-privacy:latest
+
+# Create network for AI security tools
+podman network create ai-security-net

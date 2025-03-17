@@ -1,4 +1,4 @@
-#!/bin/bash
+y#!/bin/bash
 
 # Deployment Script for TetraCryptPQC_Nexus
 
@@ -31,5 +31,15 @@ if ! npm start; then
     exit 1
 fi
 
-# Step 6: Log deployment status
+# Step 6: Create ConfigMap for AI security tools
+kubectl apply -f ai-security-configmap.yaml
+
+# Step 7: Deploy AI security tools
+kubectl apply -f caldera-deployment.yaml
+kubectl apply -f clip-deployment.yaml
+kubectl apply -f deepexploit-deployment.yaml
+kubectl apply -f aihids-deployment.yaml
+kubectl apply -f tensorflow-privacy-deployment.yaml
+
+# Step 8: Log deployment status
 echo "Deployment completed successfully at $(date)" >> logs/deploy.log

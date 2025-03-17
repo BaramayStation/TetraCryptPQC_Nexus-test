@@ -92,6 +92,25 @@ TetraCryptPQC_Nexus/
 - Simulated QKD to enhance post-quantum key exchange security.
 - Hardware Security Modules (HSM) used for secure key storage.
 
+## AI Security Tool Integration
+
+This project integrates several AI-powered security tools to enhance cryptographic resilience:
+
+### Included Tools
+- **MITRE Caldera**: AI-powered penetration testing
+- **OpenAI CLIP**: Real-time anomaly detection in cryptographic logs
+- **DeepExploit**: Automated PQC cryptanalysis testing
+- **AI-HIDS**: Monitoring unauthorized key access & tampering
+- **TensorFlow Privacy**: Securing PQC key management
+
+### Deployment
+1. Configure environment variables in `ai-security.env`
+2. Run `./setup_podman.sh` to prepare the environment
+3. Deploy with `./deploy.sh`
+
+### Configuration
+Refer to `ai-security-configmap.yaml` for environment variable settings
+
 ## Secure Messaging Flow
 1. **User Authentication**
    - Generate and verify DID with zk-STARK.
@@ -143,4 +162,3 @@ For discussions, collaboration, and contributions, reach out via:
 - **GitHub Issues:** [TetraCryptPQC_Nexus Repository](https://github.com/BaramayStation/TetraCryptPQC_Nexus)
 
 Join us in building a post-quantum secure and decentralized future!
-
