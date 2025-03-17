@@ -3,7 +3,7 @@ import fs from "fs";
 
 // Detect package manager
 const packageManager = fs.existsSync("pnpm-lock.yaml") ? "pnpm" :
-  fs.existsSync("yarn.lock") ? "yarn" : "npm";
+  fs.existsSync("yarn.lock") ? "pnpm" : "npm";
 
 console.log(`🔹 Using ${packageManager} for package management.`);
 

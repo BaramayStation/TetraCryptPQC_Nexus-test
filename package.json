@@ -1,4 +1,12 @@
 {
+  "type": "module",
   "name": "TetraCryptPQC_Nexus-test",
-  "packageManager": "yarn@4.7.0"
+  "packageManager": "pnpm@8.15.0",
+  "dependencies": {
+    "fast-glob": "^3.3.3",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.0"
+  }
 }
