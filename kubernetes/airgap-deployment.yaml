@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tetracryptpqc
-  namespace: tetracrypt
+  namespace: tetracrypt-airgap
 spec:
   replicas: 3
   selector:
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: tetracryptpqc
-          image: ghcr.io/baramaystation/tetracryptpqc:latest
+          image: localhost:5000/tetracryptpqc:latest  # Uses air-gapped registry
           ports:
             - containerPort: 3000
           env:
@@ -29,6 +29,9 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "1"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/tetracrypt
           readinessProbe:
             httpGet:
               path: /health
@@ -41,3 +44,7 @@ spec:
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 20
+      volumes:
+        - name: config-volume
+          configMap:
+            name: tetracrypt-config
