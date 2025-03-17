@@ -1,0 +1,8 @@
+FROM python:3.9-slim
+
+RUN pip install tensorflow-privacy
+
+WORKDIR /app
+COPY . .
+
+CMD ["python", "train_pqc_key_model.py"]

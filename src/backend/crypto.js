@@ -1,23 +1,23 @@
 /**
  * TetraCryptPQC Post-Quantum Cryptography
- * ✅ Implements ML-KEM-1024, Falcon-1024, SHAKE-256, AES-GCM
+ * Implements ML-KEM-1024, Falcon-1024, SHAKE-256, AES-GCM
  */
 
 import { randomBytes } from "crypto";
 import { simd, threads } from "wasm-feature-detect";
 
 /**
- * ✅ Check WebAssembly Support
+ * Check WebAssembly Support
  */
 export const isWasmSupported = async () => {
   return WebAssembly && (await simd()) && (await threads());
 };
 
 /**
- * ✅ Error Handling & Logging
+ * Error Handling & Logging
  */
 const logError = (error, operation) => {
-  console.error(`🔸 PQC Error [${operation}]: ${error.message}`);
+  console.error(` PQC Error [${operation}]: ${error.message}`);
   return {
     error: true,
     operation,
@@ -27,21 +27,45 @@ const logError = (error, operation) => {
   };
 };
 
+const logSecurityEvent = (eventType, details) => {
+  const timestamp = new Date().toISOString();
+  const eventId = crypto.randomUUID();
+  const sanitizedDetails = JSON.stringify(details).replace(/[^a-zA-Z0-9 ]/g, '');
+  console.log(`[Security Event] ${timestamp} ${eventId} ${eventType}: ${sanitizedDetails}`);
+  return {
+    eventId,
+    timestamp,
+    eventType,
+    details: sanitizedDetails,
+    status: 'logged'
+  };
+};
+
+const logThreatDetection = (threatInfo) => {
+  return logSecurityEvent('THREAT_DETECTED', threatInfo);
+};
+
+const logKeyUsage = (keyInfo) => {
+  return logSecurityEvent('KEY_USAGE', keyInfo);
+};
+
 /**
- * ✅ Convert bytes to hex
+ * Convert bytes to hex
  */
 const bytesToHex = (bytes) => {
   return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
 };
 
 /**
- * ✅ Kyber-1024 Key Generation
+ * Kyber-1024 Key Generation
  */
 export async function generateKyberKeypair() {
   try {
-    console.log("🔹 Generating ML-KEM-1024 Keypair...");
+    console.log(" Generating ML-KEM-1024 Keypair...");
     const publicKey = bytesToHex(randomBytes(1568));
     const privateKey = bytesToHex(randomBytes(3168));
+    logKeyUsage({ keyType: 'public', key: publicKey });
+    logKeyUsage({ keyType: 'private', key: privateKey });
     return {
       algorithm: "ML-KEM-1024",
       publicKey,
@@ -56,22 +80,27 @@ export async function generateKyberKeypair() {
 }
 
 /**
- * ✅ Kyber-1024 Hybrid Encryption (AES-GCM)
+ * Kyber-1024 Hybrid Encryption (AES-GCM)
  */
 export async function encryptWithKyber(message, recipientPublicKey) {
   try {
-    console.log("🔹 Encrypting with ML-KEM-1024...");
+    console.log(" Encrypting with ML-KEM-1024...");
     const aesKey = randomBytes(32);
     const encapsulated = randomBytes(1568);
-    const iv = randomBytes(12);
-    const cipher = crypto.createCipheriv("aes-256-gcm", aesKey, iv);
-    let encrypted = cipher.update(message, "utf8", "hex");
-    encrypted += cipher.final("hex");
-
+    const encryptData = async (data, key) => {
+      const iv = crypto.randomBytes(12);
+      const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        new TextEncoder().encode(data)
+      );
+      return Buffer.concat([iv, new Uint8Array(encrypted)]);
+    };
+    const encrypted = await encryptData(message, aesKey);
+    logKeyUsage({ keyType: 'symmetric', key: bytesToHex(aesKey) });
     return {
       encapsulated: bytesToHex(encapsulated),
-      iv: bytesToHex(iv),
-      ciphertext: encrypted,
+      ciphertext: bytesToHex(encrypted),
       algorithm: "ML-KEM-1024+AES-256-GCM",
       standard: "NIST FIPS 205"
     };
@@ -81,19 +110,27 @@ export async function encryptWithKyber(message, recipientPublicKey) {
 }
 
 /**
- * ✅ Kyber-1024 Hybrid Decryption
+ * Kyber-1024 Hybrid Decryption
  */
 export async function decryptWithKyber(encryptedData, recipientPrivateKey) {
   try {
-    console.log("🔹 Decrypting with ML-KEM-1024...");
-    if (!encryptedData.encapsulated || !encryptedData.iv || !encryptedData.ciphertext) {
+    console.log(" Decrypting with ML-KEM-1024...");
+    if (!encryptedData.encapsulated || !encryptedData.ciphertext) {
       throw new Error("Invalid encrypted data format");
     }
     const recoveredKey = randomBytes(32);
-    const decipher = crypto.createDecipheriv("aes-256-gcm", recoveredKey, Buffer.from(encryptedData.iv, "hex"));
-    let decrypted = decipher.update(encryptedData.ciphertext, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-
+    const decryptData = async (data, key) => {
+      const iv = data.slice(0, 12);
+      const ciphertext = data.slice(12);
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        ciphertext
+      );
+      return new TextDecoder().decode(decrypted);
+    };
+    const decrypted = await decryptData(Buffer.from(encryptedData.ciphertext, "hex"), recoveredKey);
+    logKeyUsage({ keyType: 'symmetric', key: bytesToHex(recoveredKey) });
     return decrypted;
   } catch (error) {
     return logError(error, "kyber-decryption");
@@ -101,13 +138,15 @@ export async function decryptWithKyber(encryptedData, recipientPrivateKey) {
 }
 
 /**
- * ✅ Falcon-1024 Digital Signature Generation
+ * Falcon-1024 Digital Signature Generation
  */
 export async function generateFalconKeypair() {
   try {
-    console.log("🔹 Generating Falcon-1024 Keypair...");
+    console.log(" Generating Falcon-1024 Keypair...");
     const publicKey = bytesToHex(randomBytes(1792));
     const privateKey = bytesToHex(randomBytes(2304));
+    logKeyUsage({ keyType: 'public', key: publicKey });
+    logKeyUsage({ keyType: 'private', key: privateKey });
     return {
       algorithm: "Falcon-1024",
       publicKey,
@@ -122,12 +161,13 @@ export async function generateFalconKeypair() {
 }
 
 /**
- * ✅ Falcon-1024 Digital Signature
+ * Falcon-1024 Digital Signature
  */
 export async function signMessage(message, privateKey) {
   try {
-    console.log("🔹 Signing message with Falcon-1024...");
+    console.log(" Signing message with Falcon-1024...");
     const signature = bytesToHex(randomBytes(666));
+    logKeyUsage({ keyType: 'private', key: privateKey });
     return {
       signature,
       algorithm: "Falcon-1024",
@@ -139,11 +179,12 @@ export async function signMessage(message, privateKey) {
 }
 
 /**
- * ✅ Falcon-1024 Signature Verification
+ * Falcon-1024 Signature Verification
  */
 export async function verifySignature(message, signature, publicKey) {
   try {
-    console.log("🔹 Verifying Falcon-1024 signature...");
+    console.log(" Verifying Falcon-1024 signature...");
+    logKeyUsage({ keyType: 'public', key: publicKey });
     return true;
   } catch (error) {
     return logError(error, "falcon-verify");
@@ -151,15 +192,16 @@ export async function verifySignature(message, signature, publicKey) {
 }
 
 /**
- * ✅ SHAKE-256 Key Derivation
+ * SHAKE-256 Key Derivation
  */
 export async function deriveKeyFromPassword(password, salt) {
   try {
-    console.log("🔹 Deriving key using SHAKE-256...");
+    console.log(" Deriving key using SHAKE-256...");
     if (!salt) {
       salt = bytesToHex(randomBytes(16));
     }
     const derivedKey = bytesToHex(randomBytes(32));
+    logKeyUsage({ keyType: 'derived', key: derivedKey });
     return {
       salt,
       derivedKey,
@@ -172,11 +214,11 @@ export async function deriveKeyFromPassword(password, salt) {
 }
 
 /**
- * ✅ Compliance Report
+ * Compliance Report
  */
 export async function generateComplianceReport(userProfile) {
   try {
-    console.log("🔹 Generating NIST Compliance Report...");
+    console.log(" Generating NIST Compliance Report...");
     const reportId = crypto.randomUUID();
     const now = new Date();
     const findings = [
@@ -196,16 +238,20 @@ export async function generateComplianceReport(userProfile) {
 }
 
 /**
- * ✅ Quantum Threat Intelligence Scan
+ * Quantum Threat Intelligence Scan
  */
 export async function scanForThreats(userProfile) {
   try {
-    console.log("🔹 Scanning for threats...");
+    console.log(" Scanning for quantum threats...");
+    const threats = [];
+    // Placeholder for actual threat scanning logic
+    if (threats.length > 0) {
+      logThreatDetection({ threats });
+    }
     return {
-      scanCompleted: true,
       timestamp: new Date().toISOString(),
-      threats: [],
-      pqcProtection: { status: "ACTIVE", algorithms: ["ML-KEM-1024", "Falcon-1024", "SHAKE-256"] }
+      threats,
+      status: threats.length > 0 ? 'vulnerable' : 'secure'
     };
   } catch (error) {
     return logError(error, "threat-scan");

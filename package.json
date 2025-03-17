@@ -5,6 +5,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "loadtest": "^8.2.0",
+    "wasm-feature-detect": "^1.8.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
