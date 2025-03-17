@@ -107,17 +107,17 @@ export class DecentralizedStorage {
       // Generate quantum key pair
       const { publicKey, privateKey } = await this.qkd.generateKeyPair();
 
-      // Encrypt file
-      const encryptedFile = await this.encryptFile(file, publicKey, options);
+      // Shard file into encrypted parts
+      const shards = await this.shardFile(file, options);
 
-      // Store in Helia
-      const cid = await this.fs.add(encryptedFile);
+      // Store shards in Helia
+      const cid = await this.fs.add(shards);
       console.log("📦 File stored in Helia:", cid);
 
       // Backup to Filecoin if redundancy > 0
       let backupCid: string | undefined;
       if (options.redundancy > 0) {
-        backupCid = await this.backupToFilecoin(encryptedFile);
+        backupCid = await this.backupToFilecoin(shards);
         console.log("💾 File backed up to Filecoin:", backupCid);
       }
 
@@ -152,22 +152,19 @@ export class DecentralizedStorage {
 
     try {
       // Try to get from Helia first
-      let encryptedFile: Uint8Array;
+      let shards: Uint8Array[];
       try {
-        encryptedFile = await this.fs.cat(cid);
+        shards = await this.fs.cat(cid);
       } catch (error) {
         // If Helia fails, try Filecoin backup
         console.log("⚠️ Helia retrieval failed, trying Filecoin backup");
-        encryptedFile = await this.retrieveFromFilecoin(cid);
+        shards = await this.retrieveFromFilecoin(cid);
       }
 
-      // Get private key from HSM
-      const privateKey = await this.hsm.getKey(cid);
+      // Reconstruct file from shards
+      const file = await this.reconstructFile(shards, options);
 
-      // Decrypt file
-      const decryptedFile = await this.decryptFile(encryptedFile, privateKey, options);
-
-      return decryptedFile;
+      return file;
     } catch (error) {
       console.error("❌ Failed to retrieve file:", error);
       throw error;
@@ -175,11 +172,63 @@ export class DecentralizedStorage {
   }
 
   /**
+   * Shard file into encrypted parts
+   */
+  private async shardFile(
+    file: Uint8Array,
+    options: StorageOptions
+  ): Promise<Uint8Array[]> {
+    const shardSize = 1024 * 1024; // 1MB shards
+    const shards: Uint8Array[] = [];
+
+    // Generate ML-KEM key pair
+    const { publicKey } = await this.qkd.generateKeyPair();
+
+    for (let i = 0; i < file.length; i += shardSize) {
+      const shard = file.slice(i, i + shardSize);
+      const encryptedShard = await this.encryptFile(shard, publicKey, options);
+      shards.push(encryptedShard);
+    }
+
+    return shards;
+  }
+
+  /**
+   * Reconstruct file from shards
+   */
+  private async reconstructFile(
+    shards: Uint8Array[],
+    options: StorageOptions
+  ): Promise<Uint8Array> {
+    const decryptedShards: Uint8Array[] = [];
+
+    // Get private key from HSM
+    const privateKey = await this.hsm.getKey('shard-key');
+
+    for (const shard of shards) {
+      const decryptedShard = await this.decryptFile(shard, privateKey, options);
+      decryptedShards.push(decryptedShard);
+    }
+
+    // Combine shards
+    const totalSize = decryptedShards.reduce((sum, shard) => sum + shard.length, 0);
+    const reconstructedFile = new Uint8Array(totalSize);
+    let offset = 0;
+
+    for (const shard of decryptedShards) {
+      reconstructedFile.set(shard, offset);
+      offset += shard.length;
+    }
+
+    return reconstructedFile;
+  }
+
+  /**
    * Backup file to Filecoin
    */
-  private async backupToFilecoin(file: Uint8Array): Promise<string> {
+  private async backupToFilecoin(file: Uint8Array[]): Promise<string> {
     // Create a File object from the Uint8Array
-    const blob = new Blob([file]);
+    const blob = new Blob(file);
     const backupFile = new File([blob], 'backup', { type: 'application/octet-stream' });
 
     // Store in Web3.Storage (Filecoin)
@@ -194,7 +243,7 @@ export class DecentralizedStorage {
   /**
    * Retrieve file from Filecoin
    */
-  private async retrieveFromFilecoin(cid: string): Promise<Uint8Array> {
+  private async retrieveFromFilecoin(cid: string): Promise<Uint8Array[]> {
     const res = await this.web3Storage.get(cid);
     if (!res?.ok) {
       throw new Error("Failed to retrieve from Filecoin");

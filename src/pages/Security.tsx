@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +6,7 @@ import StarkNetAuth from "@/components/security/StarkNetAuth";
 import { createUserDecentralizedIdentity } from "@/lib/decentralized-identity";
 import { useToast } from "@/components/ui/use-toast";
 import { Shield, Lock, Key, Database } from "lucide-react";
+import { generateMLKEMKeyPair, generateSLHDSAKeyPair, storeKeysInHSM } from '@/lib/quantum-identity';
 
 const Security: React.FC = () => {
   const { toast } = useToast();
@@ -37,6 +37,51 @@ const Security: React.FC = () => {
           variant: "destructive",
         });
       }
+    } catch (error) {
+      toast({
+        title: "Error Creating DID",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingDID(false);
+    }
+  };
+
+  /**
+   * Create quantum-safe decentralized identity
+   */
+  const handleCreateQuantumDID = async () => {
+    setIsCreatingDID(true);
+    try {
+      // Generate ML-KEM key pair
+      const { publicKey, privateKey } = await generateMLKEMKeyPair();
+
+      // Generate SLH-DSA signing key
+      const { signingKey, verificationKey } = await generateSLHDSAKeyPair();
+
+      // Create DID document
+      const didDocument = {
+        id: `did:tetra:${publicKey.slice(0, 32)}`,
+        verificationMethod: [{
+          id: `#keys-1`,
+          type: 'MLKEM2025PublicKey',
+          publicKey,
+          verificationKey
+        }],
+        authentication: [`#keys-1`],
+        assertionMethod: [`#keys-1`],
+        keyAgreement: [`#keys-1`]
+      };
+
+      // Store private keys in HSM
+      await storeKeysInHSM({ privateKey, signingKey });
+
+      setStarkNetId(didDocument.id);
+      toast({
+        title: "Quantum-Safe DID Created",
+        description: "Successfully created your quantum-resistant decentralized identity",
+      });
     } catch (error) {
       toast({
         title: "Error Creating DID",
@@ -107,11 +152,11 @@ const Security: React.FC = () => {
                 </div>
               ) : (
                 <Button 
-                  onClick={handleCreateDID} 
+                  onClick={handleCreateQuantumDID} 
                   disabled={isCreatingDID}
                   className="w-full"
                 >
-                  {isCreatingDID ? "Creating DID..." : "Create Decentralized Identity"}
+                  {isCreatingDID ? "Creating DID..." : "Create Quantum-Safe Decentralized Identity"}
                 </Button>
               )}
             </div>
