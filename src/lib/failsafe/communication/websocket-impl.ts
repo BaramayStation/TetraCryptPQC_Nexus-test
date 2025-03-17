@@ -1,4 +1,3 @@
-
 /**
  * TetraCryptPQC WebSocket Communication Implementation
  */
@@ -12,7 +11,7 @@ import {
 } from '../types';
 import { CommunicationImplementation, CommunicationMedium } from './types';
 import { communicationFailsafe } from './coordinator';
-import { encryptWithPQC, decryptWithPQC, generateMLKEMKeypair } from '../../pqcrypto';
+import { encryptWithPQC, generateMLKEMKeypair } from '../../pqcrypto';
 
 // Simulate a WebSocket-based implementation
 // In a real scenario, this would connect to actual servers
@@ -23,28 +22,38 @@ class WebSocketCommunicationImplementation implements CommunicationImplementatio
   private callbacks: ((from: string, message: string) => void)[] = [];
   private keyPair: {publicKey: string, privateKey: string} | null = null;
   
+  /**
+   * Initialize WebSocket communication.
+   * @returns {Promise<boolean>} True if initialization succeeds, false otherwise.
+   */
   async initialize(): Promise<boolean> {
     try {
-      // Generate a peer ID and keys
-      this.peerId = `ws-peer-${crypto.randomUUID().substring(0, 8)}`;
-      this.keyPair = await generateMLKEMKeypair();
-      
-      // Simulate connecting to a network and discovering peers
       this.connected = true;
-      
-      // Simulate some peers
-      this.peers = [
-        `ws-peer-${crypto.randomUUID().substring(0, 8)}`,
-        `ws-peer-${crypto.randomUUID().substring(0, 8)}`,
-        `ws-peer-${crypto.randomUUID().substring(0, 8)}`
-      ];
-      
-      console.log(`WebSocket communication initialized with peer ID: ${this.peerId}`);
+      this.peerId = this.generatePeerId();
+      this.keyPair = await this.generateKeyPair();
+      console.log(`WebSocket initialized with peerId: ${this.peerId}`);
       return true;
     } catch (error) {
-      console.error("Failed to initialize WebSocket communication:", error);
+      console.error('Failed to initialize WebSocket:', error);
+      this.connected = false;
       return false;
     }
+  }
+  
+  /**
+   * Generate a unique peer ID.
+   * @returns {string} A unique peer ID.
+   */
+  private generatePeerId(): string {
+    return `peer-${Math.random().toString(36).substring(2, 9)}`;
+  }
+
+  /**
+   * Generate a key pair for secure communication.
+   * @returns {Promise<{publicKey: string, privateKey: string}>} The generated key pair.
+   */
+  private async generateKeyPair(): Promise<{publicKey: string, privateKey: string}> {
+    return await generateMLKEMKeypair();
   }
   
   async sendMessage(peerId: string, message: string): Promise<boolean> {
@@ -97,6 +106,28 @@ class WebSocketCommunicationImplementation implements CommunicationImplementatio
     this.peers = [];
     console.log("WebSocket communication disconnected");
     return true;
+  }
+  
+  async test(): Promise<FailsafeTestResult> {
+    try {
+      const result = await this.sendMessage(this.peerId, 'test-message');
+      console.log('WebSocket test result:', result);
+      return {
+        success: result,
+        details: {
+          message: result ? 'WebSocket test passed' : 'WebSocket test failed',
+        },
+      };
+    } catch (error) {
+      console.error('WebSocket test failed:', error);
+      return {
+        success: false,
+        details: {
+          message: 'WebSocket test failed',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      };
+    }
   }
 }
 

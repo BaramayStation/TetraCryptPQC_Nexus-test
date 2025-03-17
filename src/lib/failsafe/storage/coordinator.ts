@@ -1,4 +1,3 @@
-
 /**
  * TetraCryptPQC Storage Failsafe Coordinator
  */
@@ -8,33 +7,51 @@ import { FailsafeComponentType } from '../types';
 import { StorageMedium } from './types';
 
 class StorageFailsafeCoordinator extends FailsafeCoordinatorImpl {
+  private currentMedium: StorageMedium | null = null;
+
   constructor() {
     super(FailsafeComponentType.STORAGE);
   }
 
   // Additional storage-specific methods
+  /**
+   * Get the current storage medium.
+   * @returns {StorageMedium | null} The current storage medium or null if none is active.
+   */
   getCurrentStorageMedium(): StorageMedium | null {
-    if (!this.activeImplementation) return null;
-    
-    const impl = this.implementations[this.activeImplementation];
-    if (!impl) return null;
-    
-    // Extract storage medium from implementation ID
-    const mediumPart = impl.id.split('-')[0];
-    return mediumPart as StorageMedium;
+    try {
+      return this.currentMedium;
+    } catch (error) {
+      console.error('Failed to get current storage medium:', error);
+      return null;
+    }
   }
   
+  /**
+   * Switch to a specific storage medium.
+   * @param medium - The storage medium to switch to.
+   * @returns {Promise<boolean>} True if the switch succeeds, false otherwise.
+   */
   async switchToStorageMedium(medium: StorageMedium): Promise<boolean> {
-    // Find an implementation matching the requested medium
-    const matchingImpl = Object.values(this.implementations)
-      .find(impl => impl.id.startsWith(medium));
-    
-    if (!matchingImpl) {
-      console.error(`No implementation found for storage medium ${medium}`);
+    try {
+      const implementation = this.getImplementationForMedium(medium);
+      if (!implementation) {
+        console.error(`No implementation found for storage medium: ${medium}`);
+        return false;
+      }
+      await implementation.activate();
+      this.currentMedium = medium;
+      console.log(`Switched to storage medium: ${medium}`);
+      return true;
+    } catch (error) {
+      console.error('Failed to switch storage medium:', error);
       return false;
     }
-    
-    return this.switchToImplementation(matchingImpl.id);
+  }
+  
+  private getImplementationForMedium(medium: StorageMedium) {
+    return Object.values(this.implementations)
+      .find(impl => impl.id.startsWith(medium));
   }
   
   getAvailableStorageMedia(): StorageMedium[] {

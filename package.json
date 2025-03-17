@@ -4,6 +4,7 @@
   "packageManager": "pnpm@8.15.0",
   "dependencies": {
     "fast-glob": "^3.3.3",
+    "loadtest": "^8.2.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
