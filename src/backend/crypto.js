@@ -3,13 +3,13 @@
  * Implements ML-KEM-1024, Falcon-1024, SHAKE-256, AES-GCM
  */
 
-import { randomBytes } from "crypto";
-import { simd, threads } from "wasm-feature-detect";
+const { randomBytes } = require('crypto');
+const { simd, threads } = require('wasm-feature-detect');
 
 /**
  * Check WebAssembly Support
  */
-export const isWasmSupported = async () => {
+const isWasmSupported = async () => {
   return WebAssembly && (await simd()) && (await threads());
 };
 
@@ -23,13 +23,13 @@ const logError = (error, operation) => {
     operation,
     message: error.message,
     timestamp: new Date().toISOString(),
-    requestId: crypto.randomUUID()
+    requestId: require('crypto').randomUUID()
   };
 };
 
 const logSecurityEvent = (eventType, details) => {
   const timestamp = new Date().toISOString();
-  const eventId = crypto.randomUUID();
+  const eventId = require('crypto').randomUUID();
   const sanitizedDetails = JSON.stringify(details).replace(/[^a-zA-Z0-9 ]/g, '');
   console.log(`[Security Event] ${timestamp} ${eventId} ${eventType}: ${sanitizedDetails}`);
   return {
@@ -59,7 +59,7 @@ const bytesToHex = (bytes) => {
 /**
  * Kyber-1024 Key Generation
  */
-export async function generateKyberKeypair() {
+async function generateKyberKeypair() {
   try {
     console.log(" Generating ML-KEM-1024 Keypair...");
     const publicKey = bytesToHex(randomBytes(1568));
@@ -82,14 +82,14 @@ export async function generateKyberKeypair() {
 /**
  * Kyber-1024 Hybrid Encryption (AES-GCM)
  */
-export async function encryptWithKyber(message, recipientPublicKey) {
+async function encryptWithKyber(message, recipientPublicKey) {
   try {
     console.log(" Encrypting with ML-KEM-1024...");
     const aesKey = randomBytes(32);
     const encapsulated = randomBytes(1568);
     const encryptData = async (data, key) => {
-      const iv = crypto.randomBytes(12);
-      const encrypted = await crypto.subtle.encrypt(
+      const iv = require('crypto').randomBytes(12);
+      const encrypted = await require('crypto').subtle.encrypt(
         { name: 'AES-GCM', iv },
         key,
         new TextEncoder().encode(data)
@@ -112,7 +112,7 @@ export async function encryptWithKyber(message, recipientPublicKey) {
 /**
  * Kyber-1024 Hybrid Decryption
  */
-export async function decryptWithKyber(encryptedData, recipientPrivateKey) {
+async function decryptWithKyber(encryptedData, recipientPrivateKey) {
   try {
     console.log(" Decrypting with ML-KEM-1024...");
     if (!encryptedData.encapsulated || !encryptedData.ciphertext) {
@@ -122,7 +122,7 @@ export async function decryptWithKyber(encryptedData, recipientPrivateKey) {
     const decryptData = async (data, key) => {
       const iv = data.slice(0, 12);
       const ciphertext = data.slice(12);
-      const decrypted = await crypto.subtle.decrypt(
+      const decrypted = await require('crypto').subtle.decrypt(
         { name: 'AES-GCM', iv },
         key,
         ciphertext
@@ -140,7 +140,7 @@ export async function decryptWithKyber(encryptedData, recipientPrivateKey) {
 /**
  * Falcon-1024 Digital Signature Generation
  */
-export async function generateFalconKeypair() {
+async function generateFalconKeypair() {
   try {
     console.log(" Generating Falcon-1024 Keypair...");
     const publicKey = bytesToHex(randomBytes(1792));
@@ -163,7 +163,7 @@ export async function generateFalconKeypair() {
 /**
  * Falcon-1024 Digital Signature
  */
-export async function signMessage(message, privateKey) {
+async function signMessage(message, privateKey) {
   try {
     console.log(" Signing message with Falcon-1024...");
     const signature = bytesToHex(randomBytes(666));
@@ -181,7 +181,7 @@ export async function signMessage(message, privateKey) {
 /**
  * Falcon-1024 Signature Verification
  */
-export async function verifySignature(message, signature, publicKey) {
+async function verifySignature(message, signature, publicKey) {
   try {
     console.log(" Verifying Falcon-1024 signature...");
     logKeyUsage({ keyType: 'public', key: publicKey });
@@ -194,7 +194,7 @@ export async function verifySignature(message, signature, publicKey) {
 /**
  * SHAKE-256 Key Derivation
  */
-export async function deriveKeyFromPassword(password, salt) {
+async function deriveKeyFromPassword(password, salt) {
   try {
     console.log(" Deriving key using SHAKE-256...");
     if (!salt) {
@@ -216,14 +216,14 @@ export async function deriveKeyFromPassword(password, salt) {
 /**
  * Compliance Report
  */
-export async function generateComplianceReport(userProfile) {
+async function generateComplianceReport(userProfile) {
   try {
     console.log(" Generating NIST Compliance Report...");
-    const reportId = crypto.randomUUID();
+    const reportId = require('crypto').randomUUID();
     const now = new Date();
     const findings = [
-      { id: crypto.randomUUID(), standard: "NIST FIPS 205", control: "ML-KEM Compliance", status: "pass" },
-      { id: crypto.randomUUID(), standard: "NIST FIPS 206", control: "Falcon Compliance", status: "pass" }
+      { id: require('crypto').randomUUID(), standard: "NIST FIPS 205", control: "ML-KEM Compliance", status: "pass" },
+      { id: require('crypto').randomUUID(), standard: "NIST FIPS 206", control: "Falcon Compliance", status: "pass" }
     ];
     return {
       id: reportId,
@@ -240,7 +240,7 @@ export async function generateComplianceReport(userProfile) {
 /**
  * Quantum Threat Intelligence Scan
  */
-export async function scanForThreats(userProfile) {
+async function scanForThreats(userProfile) {
   try {
     console.log(" Scanning for quantum threats...");
     const threats = [];
@@ -257,3 +257,16 @@ export async function scanForThreats(userProfile) {
     return logError(error, "threat-scan");
   }
 }
+
+module.exports = {
+  isWasmSupported,
+  generateKyberKeypair,
+  encryptWithKyber,
+  decryptWithKyber,
+  generateFalconKeypair,
+  signMessage,
+  verifySignature,
+  deriveKeyFromPassword,
+  generateComplianceReport,
+  scanForThreats
+};

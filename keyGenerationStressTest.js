@@ -1,4 +1,4 @@
-import { generateKyberKeypair, generateFalconKeypair, encryptWithKyber, decryptWithKyber, signMessage, verifySignature } from './src/backend/crypto.js';
+const { generateKyberKeypair, generateFalconKeypair, encryptWithKyber, decryptWithKyber, signMessage, verifySignature } = require('./src/backend/crypto.js');
 
 const testKeyGeneration = async () => {
   const maxConcurrency = 100; // Adjusted for GPU/CPU

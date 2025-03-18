@@ -1,6 +1,6 @@
-import { webcrypto } from 'node:crypto';
-import { performance } from 'node:perf_hooks';
-import { createServer } from 'node:http';
+const { webcrypto } = require('node:crypto');
+const { performance } = require('node:perf_hooks');
+const { createServer } = require('node:http');
 
 // Test parameters
 const ITERATIONS = 1000;
