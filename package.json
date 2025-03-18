@@ -2,7 +2,7 @@
   "type": "module",
   "name": "TetraCryptPQC_Nexus-test",
   "packageManager": "pnpm@8.15.0",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "NSA-grade post-quantum secure messaging and identity verification system using Podman and Yggdrasil.",
   "license": "Apache-2.0",
   "author": "BaramayStation",
@@ -13,8 +13,7 @@
     "ws": "^8.18.1",
     "crypto-js": "^4.2.0",
     "jsonwebtoken": "^9.0.2",
-    "kyber-wasm": "^1.2.0",
-    "dilithium-wasm": "^1.0.3",
+    "@openquantumsafe/liboqs": "^0.7.2",
     "argon2": "^0.30.3"
   },
   "devDependencies": {
