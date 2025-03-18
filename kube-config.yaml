@@ -19,3 +19,64 @@ scheduler:
     kubeconfig: /etc/kubernetes/scheduler.conf
     tls-cert-file: /etc/kubernetes/pki/scheduler.crt
     tls-private-key-file: /etc/kubernetes/pki/scheduler.key
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-security-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-security
+  template:
+    metadata:
+      labels:
+        app: ai-security
+    spec:
+      containers:
+      - name: caldera
+        image: caldera:latest
+        ports:
+        - containerPort: 8888
+      - name: clip
+        image: clip:latest
+        ports:
+        - containerPort: 5000
+      - name: deepexploit
+        image: deepexploit:latest
+        ports:
+        - containerPort: 8080
+      - name: aihids
+        image: aihids:latest
+        ports:
+        - containerPort: 9090
+      - name: tensorflow-privacy
+        image: tensorflow-privacy:latest
+        ports:
+        - containerPort: 6000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-security-service
+spec:
+  selector:
+    app: ai-security
+  ports:
+  - protocol: TCP
+    port: 8888
+    targetPort: 8888
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - protocol: TCP
+    port: 9090
+    targetPort: 9090
+  - protocol: TCP
+    port: 6000
+    targetPort: 6000

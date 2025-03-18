@@ -1,0 +1,20 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: zero-trust-policy
+spec:
+  selector:
+    matchLabels:
+      app: ai-security
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/default/sa/tetracryptpqc"]
+    to:
+    - operation:
+        methods: ["POST", "GET"]
+        paths: ["/api/v1/*"]
+    when:
+    - key: request.auth.claims[iss]
+      values: ["https://tetracryptpqc.local"]

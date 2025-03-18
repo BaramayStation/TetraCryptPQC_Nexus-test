@@ -1,8 +1,30 @@
-FROM python:3.9-slim
+FROM pytorch/pytorch:latest
 
-RUN pip install torch torchvision openai-clip
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . .
 
-CMD ["python", "clip_monitor.py"]
+# Install CLIP and monitoring dependencies
+RUN pip install --no-cache-dir \
+    ftfy \
+    regex \
+    tqdm \
+    torch \
+    torchvision \
+    openai-clip \
+    pandas \
+    scikit-learn
+
+# Copy monitoring scripts and models
+COPY clip_monitor.py .
+COPY models/ ./models/
+COPY config/ ./config/
+
+# Expose monitoring port
+EXPOSE 5000
+
+CMD ["python", "clip_monitor.py", "--config", "./config/clip_config.yaml"]

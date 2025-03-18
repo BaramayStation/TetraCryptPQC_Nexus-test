@@ -1,9 +1,26 @@
 FROM python:3.9-slim
 
-RUN apt-get update && apt-get install -y git
-RUN pip install caldera
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    gcc \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . .
 
-CMD ["caldera", "run"]
+# Clone Caldera
+RUN git clone https://github.com/mitre/caldera.git --recursive
+
+WORKDIR /app/caldera
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose Caldera ports
+EXPOSE 8888
+
+# Configure Caldera for PQC testing
+COPY config.yml ./conf/
+
+CMD ["python", "server.py", "--insecure"]

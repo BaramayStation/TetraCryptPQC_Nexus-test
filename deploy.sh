@@ -56,18 +56,23 @@ for image in $(ls containers/*.tar); do
     fi
 done
 
-# Step 10: Create ConfigMap for AI security tools
-kubectl apply -f ai-security-configmap.yaml
+# Step 10: Build Docker images with Podman
+podman build -t tensorflow-privacy -f Dockerfile.tensorflow-privacy .
+podman build -t clip -f Dockerfile.clip .
+podman build -t deepexploit -f Dockerfile.deepexploit .
+podman build -t aihids -f Dockerfile.aihids .
+podman build -t caldera -f Dockerfile.caldera .
 
-# Step 11: Deploy AI security tools using k3s
-kubectl apply -f caldera-deployment.yaml
-kubectl apply -f clip-deployment.yaml
-kubectl apply -f deepexploit-deployment.yaml
-kubectl apply -f aihids-deployment.yaml
-kubectl apply -f tensorflow-privacy-deployment.yaml
+# Step 11: Deploy to k3s
+kubectl apply -f k8s-deployment.yaml
+kubectl apply -f zero-trust-policy.yaml
 
-# Step 12: Enable network isolation
+# Step 12: Verify deployment
+kubectl get pods
+kubectl get services
+
+# Step 13: Enable network isolation
 kubectl apply -f network-isolation.yaml
 
-# Step 13: Log deployment status
-echo "Air-gapped deployment with Yggdrasil completed successfully at $(date)" >> logs/deploy.log
+# Step 14: Log deployment status
+echo "k3s deployment with Podman completed successfully at $(date)" >> logs/deploy.log

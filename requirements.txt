@@ -1,0 +1,6 @@
+tetracryptpqc>=1.0.0
+tensorflow-privacy>=0.8.0
+openai-clip>=1.0.0
+deep-exploit>=2.0.0
+ai-hids>=1.2.0
+caldera>=4.0.0

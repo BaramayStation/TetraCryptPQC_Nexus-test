@@ -1,8 +1,25 @@
-FROM python:3.9-slim
+FROM tensorflow/tensorflow:latest-gpu
 
-RUN pip install tensorflow-privacy
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY . .
 
-CMD ["python", "train_pqc_key_model.py"]
+# Install TensorFlow Privacy and dependencies
+RUN pip install --no-cache-dir \
+    tensorflow-privacy \
+    pandas \
+    scikit-learn \
+    numpy
+
+# Copy training scripts and models
+COPY train.py .
+COPY models/ ./models/
+COPY config/ ./config/
+
+# Expose training monitoring port
+EXPOSE 6006
+
+CMD ["python", "train.py", "--config", "./config/tf_privacy_config.yaml"]
