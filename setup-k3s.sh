@@ -1,22 +1,23 @@
 #!/bin/bash
 
 # Set up user-space directories
-mkdir -p ~/.k3s/{bin,etc,run/podman}
-export PATH=~/.k3s/bin:$PATH
+mkdir -p ~/.nomad/{bin,etc,run/podman}
+export PATH=~/.nomad/bin:$PATH
 
-# Download and install k3s in user-space
-curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_ENABLE=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true sh -
+# Download and install Nomad in user-space
+curl -sfL https://releases.hashicorp.com/nomad/1.3.0/nomad_1.3.0_linux_amd64.zip -o nomad.zip
+unzip nomad.zip -d ~/.nomad/bin/
 
-# Configure k3s for user-space
-cat > ~/.k3s/etc/k3s.yaml <<EOF
+# Configure Nomad for user-space
+cat > ~/.nomad/etc/nomad.hcl <<EOF
 write-kubeconfig-mode: "0644"
 tls-san:
   - "tetracryptpqc.local"
-container-runtime-endpoint: "unix://$HOME/.k3s/run/podman/podman.sock"
+container_runtime_endpoint = "unix://$HOME/.nomad/run/podman/podman.sock"
 EOF
 
-# Start k3s in user-space
-k3s server --config ~/.k3s/etc/k3s.yaml &
+# Start Nomad in user-space
+nomad agent -config ~/.nomad/etc/nomad.hcl &
 
 # Verify installation
-kubectl get nodes
+nomad node status

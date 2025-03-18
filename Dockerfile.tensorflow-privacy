@@ -12,12 +12,14 @@ RUN pip install --no-cache-dir \
     tensorflow-privacy \
     pandas \
     scikit-learn \
-    numpy
+    numpy \
+    pqcrypto
 
 # Copy training scripts and models
 COPY train.py .
 COPY models/ ./models/
 COPY config/ ./config/
+COPY key_manager.py .
 
 # Expose training monitoring port
 EXPOSE 6006

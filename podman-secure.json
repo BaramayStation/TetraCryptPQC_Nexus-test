@@ -1,0 +1,21 @@
+{
+  "default_capabilities": ["NET_BIND_SERVICE"],
+  "read_only": true,
+  "seccomp_profile": "/etc/podman/seccomp.json",
+  "apparmor_profile": "/etc/podman/apparmor.profile",
+  "userns": "host",
+  "log_driver": "journald",
+  "signature_policy": {
+    "default": "reject",
+    "transports": {
+      "docker": {
+        "tetracrypt": [
+          {
+            "type": "sigstore",
+            "key_path": "/etc/podman/sigstore.pub"
+          }
+        ]
+      }
+    }
+  }
+}

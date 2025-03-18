@@ -17,12 +17,14 @@ RUN pip install --no-cache-dir \
     torchvision \
     openai-clip \
     pandas \
-    scikit-learn
+    scikit-learn \
+    pqcrypto
 
 # Copy monitoring scripts and models
 COPY clip_monitor.py .
 COPY models/ ./models/
 COPY config/ ./config/
+COPY log_parser.py .
 
 # Expose monitoring port
 EXPOSE 5000

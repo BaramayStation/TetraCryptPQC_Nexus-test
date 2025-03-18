@@ -1,0 +1,30 @@
+FROM python:3.9-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    gcc \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Clone AI-HIDS
+RUN git clone https://github.com/your-repo/ai-hids.git
+
+WORKDIR /app/ai-hids
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install PQC-specific dependencies
+RUN pip install --no-cache-dir pqcrypto
+
+# Copy monitoring scripts and configurations
+COPY monitor.py .
+COPY config/ ./config/
+
+# Expose monitoring port
+EXPOSE 5001
+
+CMD ["python", "monitor.py", "--config", "./config/ai-hids-config.yaml"]

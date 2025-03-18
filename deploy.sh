@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Deployment Script for TetraCryptPQC_Nexus using k3s and Podman in air-gapped environment
+# Deployment Script for TetraCryptPQC_Nexus using Nomad and Podman in air-gapped environment
 
 # Step 1: Verify air-gapped environment
 if ping -c 1 google.com &> /dev/null; then
@@ -44,8 +44,8 @@ if ! npm run build; then
     exit 1
 fi
 
-# Step 8: Start k3s with Podman as container runtime
-sudo k3s server --container-runtime-endpoint unix:///run/podman/podman.sock --disable-network-policy --disable-scheduler --disable-cloud-controller &
+# Step 8: Start Nomad with Podman as container runtime
+sudo nomad agent -config=/etc/nomad.d/nomad.hcl &
 
 # Step 9: Load container images into local registry
 for image in $(ls containers/*.tar); do
@@ -63,16 +63,16 @@ podman build -t deepexploit -f Dockerfile.deepexploit .
 podman build -t aihids -f Dockerfile.aihids .
 podman build -t caldera -f Dockerfile.caldera .
 
-# Step 11: Deploy to k3s
-kubectl apply -f k8s-deployment.yaml
-kubectl apply -f zero-trust-policy.yaml
+# Step 11: Deploy to Nomad
+nomad run k8s-deployment.yaml
+nomad run zero-trust-policy.yaml
 
 # Step 12: Verify deployment
-kubectl get pods
-kubectl get services
+nomad status
+nomad node status
 
 # Step 13: Enable network isolation
-kubectl apply -f network-isolation.yaml
+nomad run network-isolation.yaml
 
 # Step 14: Log deployment status
-echo "k3s deployment with Podman completed successfully at $(date)" >> logs/deploy.log
+echo "Nomad deployment with Podman completed successfully at $(date)" >> logs/deploy.log

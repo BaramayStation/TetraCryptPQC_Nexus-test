@@ -4,6 +4,8 @@ const testKeyGeneration = async () => {
   const maxConcurrency = 100; // Adjusted for GPU/CPU
   const maxRequests = 1000; // Total operations
   const results = [];
+  let totalTime = 0;
+  let totalOperations = 0;
 
   let currentConcurrency = Math.floor(maxConcurrency / 2); // Start at half capacity
 
@@ -21,6 +23,8 @@ const testKeyGeneration = async () => {
 
     const keypairs = await Promise.all(promises);
     results.push(...keypairs);
+    totalTime += Date.now() - startTime;
+    totalOperations += batchSize;
 
     // Adaptive scaling based on batch performance
     const batchDuration = Date.now() - startTime;
@@ -34,6 +38,16 @@ const testKeyGeneration = async () => {
     if (global.gc) global.gc();
     await new Promise(resolve => setImmediate(resolve));
   }
+
+  // Calculate and display detailed metrics
+  const avgTime = totalTime / totalOperations;
+  const throughput = totalOperations / (totalTime / 1000);
+
+  console.log('\n=== Stress Test Results ===');
+  console.log(`Total operations: ${totalOperations}`);
+  console.log(`Total time: ${totalTime.toFixed(2)} ms`);
+  console.log(`Average key generation time: ${avgTime.toFixed(2)} ms`);
+  console.log(`Throughput: ${throughput.toFixed(2)} ops/sec`);
 
   console.log('Scaled test completed successfully!');
   console.log('Results:', results.length, 'keypairs generated');
