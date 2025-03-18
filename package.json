@@ -2,13 +2,43 @@
   "type": "module",
   "name": "TetraCryptPQC_Nexus-test",
   "packageManager": "pnpm@8.15.0",
+  "version": "1.0.1",
+  "description": "NSA-grade post-quantum secure messaging and identity verification system using Podman and Yggdrasil.",
+  "license": "Apache-2.0",
+  "author": "BaramayStation",
   "dependencies": {
     "fast-glob": "^3.3.3",
     "loadtest": "^8.2.0",
     "wasm-feature-detect": "^1.8.0",
-    "ws": "^8.18.1"
+    "ws": "^8.18.1",
+    "crypto-js": "^4.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "kyber-wasm": "^1.2.0",
+    "dilithium-wasm": "^1.0.3",
+    "argon2": "^0.30.3"
   },
   "devDependencies": {
-    "@types/ws": "^8.18.0"
+    "@types/ws": "^8.18.0",
+    "eslint": "^8.55.0",
+    "prettier": "^3.0.3",
+    "husky": "^9.0.7",
+    "lint-staged": "^15.3.0"
+  },
+  "scripts": {
+    "start": "node --experimental-wasm-modules src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "pnpm run lint && pnpm run format-check",
+    "lint": "eslint 'src/**/*.js' 'src/**/*.ts'",
+    "format": "prettier --write 'src/**/*.js' 'src/**/*.ts'",
+    "format-check": "prettier --check 'src/**/*.js' 'src/**/*.ts'",
+    "postinstall": "husky install"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "**/*.{js,ts}": ["eslint --fix", "prettier --write"]
   }
 }
