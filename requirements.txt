@@ -5,4 +5,3 @@ caldera>=4.0.0
 # ✅ GitHub-sourced packages (not on PyPI)
 # These may require Netlify to support Git-based pip installs
 git+https://github.com/openai/CLIP.git#egg=openai-clip
-git+https://github.com/13o-bbr-bbq/machine_learning_security.git#egg=deep-exploit
