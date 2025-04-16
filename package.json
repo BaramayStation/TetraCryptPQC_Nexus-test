@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
+    "build": "echo 'No build step needed — deploying static files'",
     "test": "node keyGenerationStressTest.js && node stressTest.js"
   },
   "author": "",
