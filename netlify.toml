@@ -1,87 +1,58 @@
-# ✅ Netlify Build Configuration for TetraCryptPQC_Nexus
-
+# ✅ Build Setup — Safe for Vite, Tailwind, HTML, or WASM frontends
 [build]
-  command = "NODE_OPTIONS='--max-old-space-size=4096' pnpm run build"      # Ensure Bun builds the project correctly
-  publish = "dist"               # Correct publish directory for Netlify
-  functions = "disabled"          # Explicitly disable Netlify Functions
-  timeout = 1800                  # Increases timeout to prevent build failures on large projects
+  command = "npm run build"
+  publish = "."                    # If your HTML/JS is in root
+  functions = "disabled"
+  timeout = 1800                   # 30 minutes for future heavy zk compiles
 
-# ✅ Ensure Secure Build Environment
+# ✅ Minimal Environment (only what you need)
 [build.environment]
-  NODE_VERSION = "20"             # Latest stable Node.js version
-  BUN_VERSION = "1.0.30"          # Ensure correct Bun version
-  VITE_WASM_ENABLED = "true"      # Enables WebAssembly support in Vite
-  VITE_OPTIMIZE_WASM = "true"     # Ensures optimized WebAssembly handling
-  NPM_FLAGS = "--legacy-peer-deps" # Fixes potential dependency resolution issues
-  CI = "true"                      # Ensures builds fail on errors in CI/CD environments
+  NODE_VERSION = "20"
+  CI = "true"
+  NPM_FLAGS = "--legacy-peer-deps"
+  VITE_WASM_ENABLED = "true"
+  VITE_OPTIMIZE_WASM = "true"
 
-# ✅ Development Server Configuration (Local Testing)
+# ✅ Local Dev Simulation (optional)
 [dev]
-  command = "bun run dev"
-  publish = "dist"
+  command = "npm run dev"
+  publish = "."
   port = 8080
 
-# ✅ Redirects & Security Headers
+# ✅ Secure Headers for All Pages
 [[headers]]
   for = "/*"
   [headers.values]
-    # 🔒 Enforce HTTPS for all traffic
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
-
-    # 🔐 Prevent Clickjacking Attacks
     X-Frame-Options = "DENY"
-
-    # 📦 Prevent MIME Sniffing Attacks
     X-Content-Type-Options = "nosniff"
-
-    # 🔏 Enable XSS Protection
     X-XSS-Protection = "1; mode=block"
-
-    # 🌐 Secure Content Security Policy (CSP)
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.starknet.io; frame-ancestors 'none'; worker-src 'self' blob:; img-src 'self' data: blob:"
-
-    # 🔒 Feature Policy to restrict dangerous features
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-    
-    # ✅ NEW: Cross-Origin Resource Policy
     Cross-Origin-Resource-Policy = "same-site"
-    
-    # ✅ NEW: Cross-Origin Opener Policy
     Cross-Origin-Opener-Policy = "same-origin"
-    
-    # ✅ NEW: Cross-Origin Embedder Policy
     Cross-Origin-Embedder-Policy = "require-corp"
 
-# ✅ Optimize Caching & Performance
+# ✅ Cache Assets
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# ✅ Fix SPA (Single Page App) Routing Issues
+# ✅ Hide Preview Deploys From Google
+[[headers]]
+  for = "/preview/*"
+  [headers.values]
+    X-Robots-Tag = "noindex"
+
+# ✅ SPA Routing Support
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# ✅ Debugging & Build Logging
-[build.processing]
-  skip_processing = false # Ensures all Netlify optimizations run correctly
-
-# ✅ Set Default Fallback for API Calls
+# ✅ API fallback (optional if needed)
 [[redirects]]
   from = "/api/*"
   to = "/api/index.js"
   status = 200
-
-# ✅ NEW: Enhanced Security Headers for TPM/SGX Confidential Computing
-[[headers]]
-  for = "/enterprise/*"
-  [headers.values]
-    Cross-Origin-Resource-Policy = "same-origin"
-    Cross-Origin-Embedder-Policy = "require-corp"
-    Cross-Origin-Opener-Policy = "same-origin"
-    Sec-Fetch-Dest = "document"
-    Sec-Fetch-Mode = "navigate"
-    Sec-Fetch-Site = "same-origin"
-    Sec-Fetch-User = "?1"
