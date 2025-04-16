@@ -1,8 +1,8 @@
+# ✅ Verified PyPI packages
 tensorflow-privacy>=0.8.0
 caldera>=4.0.0
 
-# GitHub sources
+# ✅ GitHub-sourced packages (not on PyPI)
+# These may require Netlify to support Git-based pip installs
 git+https://github.com/openai/CLIP.git#egg=openai-clip
-git+https://github.com/13o-bbr-bbq/machine_learning_security#egg=deep-exploit
-# Example placeholder for ai-hids if custom
-# git+https://github.com/your-org/ai-hids.git#egg=ai-hids
+git+https://github.com/13o-bbr-bbq/machine_learning_security.git#egg=deep-exploit
