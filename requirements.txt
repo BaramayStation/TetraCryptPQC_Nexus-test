@@ -1,5 +1,8 @@
 tensorflow-privacy>=0.8.0
-openai-clip>=1.0.0
-deep-exploit>=2.0.0
-ai-hids>=1.2.0
 caldera>=4.0.0
+
+# GitHub sources
+git+https://github.com/openai/CLIP.git#egg=openai-clip
+git+https://github.com/13o-bbr-bbq/machine_learning_security#egg=deep-exploit
+# Example placeholder for ai-hids if custom
+# git+https://github.com/your-org/ai-hids.git#egg=ai-hids
