@@ -6,17 +6,15 @@
   NODE_VERSION = "20"
   CI = "true"
 
-# ✅ SPA fallback (optional)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# ✅ Caching headers for performance
 [[headers]]
   for = "/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
-    X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
